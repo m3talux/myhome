@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:mobx/mobx.dart';
 import 'package:myhome/stores/light/light_store.dart';
@@ -9,6 +10,7 @@ class SocketStore = _SocketStore with _$SocketStore;
 abstract class _SocketStore with Store {
   Socket? _commandSocket;
   Socket? _monitoringSocket;
+  Timer? _timer;
 
   final String host;
   final int port;
@@ -56,6 +58,22 @@ abstract class _SocketStore with Store {
   Future<void> connect() async {
     await startMonitoringSocket();
     await startCommandSocket();
+
+    launchPeriodicChecks();
+  }
+
+  @action
+  void launchPeriodicChecks() {
+    _timer?.cancel();
+    _timer = null;
+
+    _timer = Timer.periodic(const Duration(seconds: 1), (Timer timer) {
+      for (LightStore light in lights) {
+        if (light.dimmable && light.isOn) {
+          sendCommand(light.statusCheck());
+        }
+      }
+    });
   }
 
   @action
@@ -64,6 +82,8 @@ abstract class _SocketStore with Store {
     _monitoringSocket = null;
     _commandSocket?.destroy();
     _commandSocket = null;
+    _timer?.cancel();
+    _timer = null;
     status = 'Disconnected';
     log += 'Disconnected\n';
   }

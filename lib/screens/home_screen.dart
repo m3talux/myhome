@@ -86,4 +86,11 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+
+  @override
+  void dispose() {
+    socketStore.disconnect();
+
+    super.dispose();
+  }
 }
