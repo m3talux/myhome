@@ -12,11 +12,6 @@ class LightsContainer extends StatefulWidget {
 
 class _LightsContainerState extends State<LightsContainer> {
   @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(16.0),

@@ -1,42 +1,53 @@
+import 'dart:async';
+
 import 'package:mobx/mobx.dart';
+import 'package:myhome/models/models.dart';
+import 'package:myhome/persistence/light_service.dart';
+import 'package:myhome/stores/stores.dart';
 
 part 'light_store.g.dart';
 
 class LightStore = _LightStore with _$LightStore;
 
 abstract class _LightStore with Store {
+  Timer? _timer;
+
   @observable
-  bool isOn = false;
+  List<Light> lights = [];
 
-  final int id;
-  final String name;
-  final bool dimmable;
+  @observable
+  bool loading = false;
 
-  _LightStore({
-    required this.id,
-    required this.name,
-    this.dimmable = false,
-  });
+  ObservableMap<int, bool> states = ObservableMap();
 
-  @computed
-  String get command => isOn ? offCommand() : onCommand();
+  @action
+  Future<void> loadLights() async {
+    loading = true;
 
-  // Command to turn the light off
-  String offCommand() {
-    return '*1*0*$id##';
+    final LightService lightService = LightService();
+
+    lights = await lightService.getAllLights();
+
+    for (Light l in lights) {
+      states[l.id] = false;
+    }
+
+    loading = false;
   }
 
-  // Command to turn the light on
-  String onCommand() {
-    return '*1*1*$id##';
+  @action
+  Future<void> addLight(Light light) async {
+    loading = true;
+
+    final LightService lightService = LightService();
+
+    await lightService.addLight(light);
+
+    lights.add(light);
+
+    loading = false;
   }
 
-  // Command to check the light's status
-  String statusCheck() {
-    return "*#1*$id##";
-  }
-
-  // Action to handle incoming data and update the light's state
   @action
   void onData(String packet) {
     final match = RegExp(r'^\*1\*(\d+)\*(\d+)##$').firstMatch(packet);
@@ -50,18 +61,27 @@ abstract class _LightStore with Store {
       }
 
       final idInt = int.tryParse(id);
-
-      if (idInt == null || idInt != this.id) {
-        return;
-      }
-
       final stateInt = int.tryParse(state);
 
-      if (stateInt == null) {
+      if (idInt == null || stateInt == null) {
         return;
       }
 
-      isOn = stateInt >= 1;
+      states[idInt] = stateInt >= 1;
     }
+  }
+
+  @action
+  void launchPeriodicChecks() {
+    _timer?.cancel();
+    _timer = null;
+
+    _timer = Timer.periodic(const Duration(seconds: 1), (Timer timer) {
+      for (Light light in lights) {
+        if (light.dimmable && states[light.id] == true) {
+          socketStore.sendCommand(light.statusCheck());
+        }
+      }
+    });
   }
 }

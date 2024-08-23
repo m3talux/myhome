@@ -1,7 +1,7 @@
 import 'package:mobx/mobx.dart';
 import 'package:myhome/router/router.dart';
 import 'package:myhome/router/router.gr.dart';
-import 'package:myhome/stores/lights/light_store.dart';
+import 'package:myhome/stores/light/light_store.dart';
 import 'package:myhome/stores/socket/socket_store.dart';
 
 part 'app_store.g.dart';
@@ -25,6 +25,8 @@ abstract class _AppStore with Store {
     await lightStore.loadLights();
 
     await socketStore.registerMonitoring(lightStore.onData);
+
+    lightStore.launchPeriodicChecks();
 
     loading = false;
 

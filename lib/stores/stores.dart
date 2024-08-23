@@ -1,5 +1,5 @@
 import 'package:myhome/stores/app/app_store.dart';
-import 'package:myhome/stores/lights/light_store.dart';
+import 'package:myhome/stores/light/light_store.dart';
 import 'package:myhome/stores/socket/socket_store.dart';
 
 // final lights = <LightStore>[
