@@ -9,18 +9,42 @@ part of 'socket_store.dart';
 // ignore_for_file: non_constant_identifier_names, unnecessary_brace_in_string_interps, unnecessary_lambdas, prefer_expression_function_bodies, lines_longer_than_80_chars, avoid_as, avoid_annotating_with_dynamic, no_leading_underscores_for_local_identifiers
 
 mixin _$SocketStore on _SocketStore, Store {
-  late final _$statusAtom = Atom(name: '_SocketStore.status', context: context);
+  Computed<bool>? _$healthyComputed;
 
   @override
-  String get status {
-    _$statusAtom.reportRead();
-    return super.status;
+  bool get healthy => (_$healthyComputed ??=
+          Computed<bool>(() => super.healthy, name: '_SocketStore.healthy'))
+      .value;
+
+  late final _$commandStatusAtom =
+      Atom(name: '_SocketStore.commandStatus', context: context);
+
+  @override
+  SocketStatus get commandStatus {
+    _$commandStatusAtom.reportRead();
+    return super.commandStatus;
   }
 
   @override
-  set status(String value) {
-    _$statusAtom.reportWrite(value, super.status, () {
-      super.status = value;
+  set commandStatus(SocketStatus value) {
+    _$commandStatusAtom.reportWrite(value, super.commandStatus, () {
+      super.commandStatus = value;
+    });
+  }
+
+  late final _$monitorStatusAtom =
+      Atom(name: '_SocketStore.monitorStatus', context: context);
+
+  @override
+  SocketStatus get monitorStatus {
+    _$monitorStatusAtom.reportRead();
+    return super.monitorStatus;
+  }
+
+  @override
+  set monitorStatus(SocketStatus value) {
+    _$monitorStatusAtom.reportWrite(value, super.monitorStatus, () {
+      super.monitorStatus = value;
     });
   }
 
@@ -39,13 +63,13 @@ mixin _$SocketStore on _SocketStore, Store {
     });
   }
 
-  late final _$startMonitoringSocketAsyncAction =
-      AsyncAction('_SocketStore.startMonitoringSocket', context: context);
+  late final _$registerMonitoringAsyncAction =
+      AsyncAction('_SocketStore.registerMonitoring', context: context);
 
   @override
-  Future<void> startMonitoringSocket() {
-    return _$startMonitoringSocketAsyncAction
-        .run(() => super.startMonitoringSocket());
+  Future<void> registerMonitoring(dynamic Function(String) onData) {
+    return _$registerMonitoringAsyncAction
+        .run(() => super.registerMonitoring(onData));
   }
 
   late final _$startCommandSocketAsyncAction =
@@ -55,14 +79,6 @@ mixin _$SocketStore on _SocketStore, Store {
   Future<void> startCommandSocket() {
     return _$startCommandSocketAsyncAction
         .run(() => super.startCommandSocket());
-  }
-
-  late final _$connectAsyncAction =
-      AsyncAction('_SocketStore.connect', context: context);
-
-  @override
-  Future<void> connect() {
-    return _$connectAsyncAction.run(() => super.connect());
   }
 
   late final _$_SocketStoreActionController =
@@ -104,8 +120,10 @@ mixin _$SocketStore on _SocketStore, Store {
   @override
   String toString() {
     return '''
-status: ${status},
-log: ${log}
+commandStatus: ${commandStatus},
+monitorStatus: ${monitorStatus},
+log: ${log},
+healthy: ${healthy}
     ''';
   }
 }

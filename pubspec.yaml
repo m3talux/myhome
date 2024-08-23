@@ -40,6 +40,11 @@ dependencies:
   animated_notch_bottom_bar: ^1.0.3
   flutter_bounceable: ^1.1.0
   flutter_svg: ^2.0.10+1
+  sqflite: ^2.3.3+1
+  path: ^1.9.0
+  loading_indicator: ^3.1.1
+  auto_route: ^9.2.2
+  simple_gradient_text: ^1.3.0
 
 dev_dependencies:
   flutter_test:
@@ -53,6 +58,7 @@ dev_dependencies:
   flutter_lints: ^4.0.0
   mobx_codegen: ^2.6.1
   build_runner: ^2.4.12
+  auto_route_generator: ^9.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -67,6 +73,7 @@ flutter:
 
   assets:
     - assets/svg/
+    - assets/fonts/Montserrat/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

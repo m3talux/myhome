@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:mobx/mobx.dart';
-import 'package:myhome/stores/light/light_store.dart';
+import 'package:myhome/models/socker_status.dart';
 
 part 'socket_store.g.dart';
 
@@ -14,13 +14,19 @@ abstract class _SocketStore with Store {
 
   final String host;
   final int port;
-  final List<LightStore> lights;
 
-  _SocketStore(
-      {this.host = '192.168.1.35', this.port = 20000, required this.lights});
+  _SocketStore({this.host = '192.168.1.35', this.port = 20000});
 
   @observable
-  String status = 'Disconnected';
+  SocketStatus commandStatus = SocketStatus.disconnected;
+
+  @observable
+  SocketStatus monitorStatus = SocketStatus.disconnected;
+
+  @computed
+  bool get healthy =>
+      commandStatus == SocketStatus.connected &&
+      monitorStatus == SocketStatus.connected;
 
   @observable
   String log = '';
@@ -29,16 +35,24 @@ abstract class _SocketStore with Store {
   final String _commandCommand = '*99*9##';
 
   @action
-  Future<void> startMonitoringSocket() async {
+  Future<void> registerMonitoring(Function(String) onData) async {
     try {
+      monitorStatus = SocketStatus.connecting;
+
       _monitoringSocket = await Socket.connect(host, port);
 
       _monitoringSocket!.listen(
-          (data) => handleResponse(String.fromCharCodes(data)),
-          onError: (error) => _monitoringSocket!.close(),
-          onDone: () => startMonitoringSocket());
+        (data) => onData(String.fromCharCodes(data)),
+        onError: (error) {
+          _monitoringSocket!.close();
+          monitorStatus = SocketStatus.error;
+        },
+        onDone: () => monitorStatus = SocketStatus.disconnected,
+      );
 
       _monitoringSocket!.write(_monitorCommand);
+
+      monitorStatus = SocketStatus.connected;
     } catch (e) {
       log += 'Failed to connect to monitoring socket: $e\n';
     }
@@ -47,33 +61,21 @@ abstract class _SocketStore with Store {
   @action
   Future<void> startCommandSocket() async {
     try {
+      commandStatus = SocketStatus.connecting;
       _commandSocket = await Socket.connect(host, port);
+      _commandSocket!.listen(
+        (_) => {},
+        onError: (error) {
+          _commandSocket!.close();
+          commandStatus = SocketStatus.error;
+        },
+        onDone: () => startCommandSocket(),
+      );
       _commandSocket!.write(_commandCommand);
+      commandStatus = SocketStatus.connected;
     } catch (e) {
       log += 'Failed to connect to command socket: $e\n';
     }
-  }
-
-  @action
-  Future<void> connect() async {
-    await startMonitoringSocket();
-    await startCommandSocket();
-
-    launchPeriodicChecks();
-  }
-
-  @action
-  void launchPeriodicChecks() {
-    _timer?.cancel();
-    _timer = null;
-
-    _timer = Timer.periodic(const Duration(seconds: 1), (Timer timer) {
-      for (LightStore light in lights) {
-        if (light.dimmable && light.isOn) {
-          sendCommand(light.statusCheck());
-        }
-      }
-    });
   }
 
   @action
@@ -84,7 +86,8 @@ abstract class _SocketStore with Store {
     _commandSocket = null;
     _timer?.cancel();
     _timer = null;
-    status = 'Disconnected';
+    monitorStatus = SocketStatus.disconnected;
+    commandStatus = SocketStatus.disconnected;
     log += 'Disconnected\n';
   }
 
@@ -134,8 +137,5 @@ abstract class _SocketStore with Store {
     }
 
     log += 'Received response: $response\n';
-    for (var l in lights) {
-      l.onData(response);
-    }
   }
 }

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:myhome/screens/home_screen.dart';
+import 'package:myhome/router/router.dart';
 
 void main() {
   runApp(const MyHomeApp());
@@ -10,13 +10,15 @@ class MyHomeApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'MyHome Automation',
+    return MaterialApp.router(
+      title: 'MyHome +',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blueAccent),
+        useMaterial3: true,
+        fontFamily: 'Montserrat',
       ),
-      home: const HomeScreen(),
+      routerConfig: router.config(),
     );
   }
 }

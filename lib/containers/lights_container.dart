@@ -12,14 +12,19 @@ class LightsContainer extends StatefulWidget {
 
 class _LightsContainerState extends State<LightsContainer> {
   @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: GridView.builder(
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 3, crossAxisSpacing: 8.0),
-        itemBuilder: (_, index) => LightWidget(light: lights[index]),
-        itemCount: lights.length,
+        itemBuilder: (_, index) => LightWidget(light: lightStore.lights[index]),
+        itemCount: lightStore.lights.length,
       ),
     );
   }

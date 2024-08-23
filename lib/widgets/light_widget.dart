@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bounceable/flutter_bounceable.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:myhome/stores/light/light_store.dart';
+import 'package:myhome/models/models.dart';
 import 'package:myhome/stores/stores.dart';
 
 class LightWidget extends StatefulWidget {
-  final LightStore light;
+  final Light light;
 
   const LightWidget({super.key, required this.light});
 
@@ -27,12 +27,18 @@ class _LightWidgetState extends State<LightWidget> {
     return Observer(
       builder: (_) => Bounceable(
         onTap: () {
-          socketStore
-              .sendActions([widget.light.command, widget.light.statusCheck()]);
+          socketStore.sendActions([
+            lightStore.states[widget.light.id] == true
+                ? widget.light.offCommand()
+                : widget.light.onCommand(),
+            widget.light.statusCheck()
+          ]);
         },
         child: Card(
           elevation: 4.0,
-          shadowColor: widget.light.isOn ? Colors.yellow : Colors.black54,
+          shadowColor: lightStore.states[widget.light.id] == true
+              ? Colors.yellow
+              : Colors.black54,
           color: Colors.white,
           child: Container(
             width: 100,
@@ -42,7 +48,7 @@ class _LightWidgetState extends State<LightWidget> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 SvgPicture.asset(
-                  widget.light.isOn
+                  lightStore.states[widget.light.id] == true
                       ? 'assets/svg/light_on.svg'
                       : 'assets/svg/light_off.svg',
                   width: 36,

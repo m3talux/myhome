@@ -1,9 +1,11 @@
 import 'package:animated_notch_bottom_bar/animated_notch_bottom_bar/animated_notch_bottom_bar.dart';
+import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
-import 'package:myhome/containers/debug_container.dart';
+import 'package:myhome/containers/create_container.dart';
 import 'package:myhome/containers/lights_container.dart';
 import 'package:myhome/stores/stores.dart';
 
+@RoutePage()
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -54,13 +56,6 @@ class _HomeScreenState extends State<HomeScreen> {
     const DebugContainer(),
     Container(),
   ];
-
-  @override
-  void initState() {
-    super.initState();
-
-    socketStore.connect();
-  }
 
   @override
   Widget build(BuildContext context) {
