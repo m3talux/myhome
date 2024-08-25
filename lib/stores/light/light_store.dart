@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:mobx/mobx.dart';
 import 'package:myhome/models/models.dart';
+import 'package:myhome/persistence/category_service.dart';
 import 'package:myhome/persistence/light_service.dart';
 import 'package:myhome/stores/stores.dart';
 
@@ -15,24 +16,60 @@ abstract class _LightStore with Store {
   @observable
   List<Light> lights = [];
 
+  ObservableList<Light> selectedLights = ObservableList();
+
+  @observable
+  List<Category> categories = [];
+
   @observable
   bool loading = false;
 
   ObservableMap<int, bool> states = ObservableMap();
 
+  @computed
+  bool get multiSelectionMode => selectedLights.isNotEmpty;
+
+  bool isSelected(int id) =>
+      selectedLights.where((l) => l.id == id).length == 1;
+
   @action
-  Future<void> loadLights() async {
+  void clearSelectedLights() {
+    selectedLights.clear();
+  }
+
+  @action
+  Future<void> loadData() async {
     loading = true;
 
+    final CategoryService categoryService = CategoryService();
     final LightService lightService = LightService();
 
-    lights = await lightService.getAllLights();
+    categories = await categoryService.getAllCategories();
+    lights = await lightService.getLightsNotInAnyCategory();
+
+    for (Category c in categories) {
+      for (Light l in c.lights) {
+        states[l.id] = false;
+        socketStore.sendCommand(l.statusCheck());
+      }
+    }
 
     for (Light l in lights) {
       states[l.id] = false;
+      socketStore.sendCommand(l.statusCheck());
     }
 
     loading = false;
+  }
+
+  @action
+  void setSelectedLight(Light light) {
+    selectedLights.add(light);
+  }
+
+  @action
+  void removeSelectedLight(int id) {
+    selectedLights.removeWhere((l) => l.id == id);
   }
 
   @action
@@ -44,6 +81,25 @@ abstract class _LightStore with Store {
     await lightService.addLight(light);
 
     lights.add(light);
+
+    clearSelectedLights();
+
+    loading = false;
+  }
+
+  @action
+  Future<void> updateLight(Light light) async {
+    loading = true;
+
+    final LightService lightService = LightService();
+
+    await lightService.updateLight(light);
+
+    final index = lights.indexWhere((l) => l.id == light.id);
+
+    lights[index] = light;
+
+    clearSelectedLights();
 
     loading = false;
   }

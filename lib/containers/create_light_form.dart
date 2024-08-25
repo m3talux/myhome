@@ -1,9 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:myhome/models/models.dart';
 
 class CreateLightForm extends StatefulWidget {
-  final Function(String, int, bool) onCreate;
+  final Function(Light) onAction;
+  final String initialName;
+  final int? initialId;
+  final bool initialDimmable;
 
-  const CreateLightForm({super.key, required this.onCreate});
+  const CreateLightForm({
+    super.key,
+    required this.onAction,
+    this.initialName = '',
+    this.initialId,
+    this.initialDimmable = false,
+  });
 
   @override
   State<CreateLightForm> createState() => _CreateLightFormState();
@@ -13,9 +23,17 @@ class _CreateLightFormState extends State<CreateLightForm> {
   final _formKey = GlobalKey<FormState>();
 
   // Form fields
-  String _name = '';
-  int _id = 0;
-  bool _dimmable = false;
+  late String _name;
+  late int? _id;
+  late bool _dimmable;
+
+  @override
+  void initState() {
+    super.initState();
+    _name = widget.initialName;
+    _id = widget.initialId;
+    _dimmable = widget.initialDimmable;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,6 +44,7 @@ class _CreateLightFormState extends State<CreateLightForm> {
         children: <Widget>[
           // Light Name field
           TextFormField(
+            initialValue: _name,
             decoration: const InputDecoration(
               labelText: 'Name',
               border: OutlineInputBorder(),
@@ -44,6 +63,7 @@ class _CreateLightFormState extends State<CreateLightForm> {
 
           // Light ID field
           TextFormField(
+            initialValue: _id?.toString(),
             decoration: const InputDecoration(
               labelText: 'ID',
               border: OutlineInputBorder(),
@@ -53,13 +73,13 @@ class _CreateLightFormState extends State<CreateLightForm> {
               if (value == null || value.isEmpty) {
                 return 'Please enter an ID';
               }
-              if (int.tryParse(value) == null) {
-                return 'ID must be a number';
+              if (int.tryParse(value) == null || int.parse(value) == 0) {
+                return 'ID must be a positive number';
               }
               return null;
             },
             onSaved: (value) {
-              _id = int.parse(value!);
+              _id = int.tryParse(value!);
             },
           ),
           const SizedBox(height: 16),
@@ -86,7 +106,7 @@ class _CreateLightFormState extends State<CreateLightForm> {
               onPressed: () {
                 if (_formKey.currentState!.validate()) {
                   _formKey.currentState!.save();
-                  widget.onCreate(_name, _id, _dimmable);
+                  widget.onAction(Light(_id ?? 0, _name, _dimmable));
 
                   // Optionally reset the form after successful submission
                   _formKey.currentState!.reset();
@@ -95,7 +115,7 @@ class _CreateLightFormState extends State<CreateLightForm> {
                   });
                 }
               },
-              child: const Text('Create Light'),
+              child: const Text('Submit'),
             ),
           ),
         ],

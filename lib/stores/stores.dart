@@ -1,5 +1,6 @@
 import 'package:myhome/stores/app/app_store.dart';
 import 'package:myhome/stores/light/light_store.dart';
+import 'package:myhome/stores/navigation/navigation_store.dart';
 import 'package:myhome/stores/socket/socket_store.dart';
 
 // final lights = <LightStore>[
@@ -13,3 +14,4 @@ import 'package:myhome/stores/socket/socket_store.dart';
 final socketStore = SocketStore();
 final lightStore = LightStore();
 final appStore = AppStore(socketStore, lightStore);
+final navigationStore = NavigationStore();

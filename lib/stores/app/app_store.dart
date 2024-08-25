@@ -22,7 +22,7 @@ abstract class _AppStore with Store {
     loading = true;
 
     await socketStore.startCommandSocket();
-    await lightStore.loadLights();
+    await lightStore.loadData();
 
     await socketStore.registerMonitoring(lightStore.onData);
 

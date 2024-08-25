@@ -18,7 +18,7 @@ class _LightsContainerState extends State<LightsContainer> {
       child: GridView.builder(
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 3, crossAxisSpacing: 8.0),
-        itemBuilder: (_, index) => LightWidget(light: lightStore.lights[index]),
+        itemBuilder: (_, index) => LightWidget(lightIndex: index),
         itemCount: lightStore.lights.length,
       ),
     );
