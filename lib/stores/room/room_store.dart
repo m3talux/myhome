@@ -1,75 +1,78 @@
 import 'dart:async';
-
 import 'package:mobx/mobx.dart';
 import 'package:myhome/models/models.dart';
-import 'package:myhome/persistence/category_service.dart';
 import 'package:myhome/persistence/light_service.dart';
+import 'package:myhome/persistence/room_service.dart';
 import 'package:myhome/stores/stores.dart';
 
-part 'light_store.g.dart';
+part 'room_store.g.dart';
 
-class LightStore = _LightStore with _$LightStore;
+class RoomStore = _RoomStore with _$RoomStore;
 
-abstract class _LightStore with Store {
+abstract class _RoomStore with Store {
   Timer? _timer;
-
-  @observable
-  List<Light> lights = [];
-
-  ObservableList<Light> selectedLights = ObservableList();
-
-  @observable
-  List<Category> categories = [];
 
   @observable
   bool loading = false;
 
-  ObservableMap<int, bool> states = ObservableMap();
+  ObservableList<Room> rooms = ObservableList();
+  ObservableMap<int, int> states = ObservableMap();
 
   @computed
-  bool get multiSelectionMode => selectedLights.isNotEmpty;
+  List<Light> get lights {
+    List<Light> res = [];
 
-  bool isSelected(int id) =>
-      selectedLights.where((l) => l.id == id).length == 1;
+    for (Room r in rooms) {
+      res.addAll(r.lights);
+    }
 
-  @action
-  void clearSelectedLights() {
-    selectedLights.clear();
+    return res;
   }
 
   @action
   Future<void> loadData() async {
     loading = true;
 
-    final CategoryService categoryService = CategoryService();
-    final LightService lightService = LightService();
+    final RoomService roomService = RoomService();
 
-    categories = await categoryService.getAllCategories();
-    lights = await lightService.getLightsNotInAnyCategory();
+    rooms.addAll(await roomService.getAllRooms());
 
-    for (Category c in categories) {
-      for (Light l in c.lights) {
-        states[l.id] = false;
+    for (Room room in rooms) {
+      for (Light l in room.lights) {
+        states[l.id] = 0;
         socketStore.sendCommand(l.statusCheck());
       }
-    }
-
-    for (Light l in lights) {
-      states[l.id] = false;
-      socketStore.sendCommand(l.statusCheck());
     }
 
     loading = false;
   }
 
   @action
-  void setSelectedLight(Light light) {
-    selectedLights.add(light);
+  Future<void> addRoom(String name) async {
+    loading = true;
+
+    final RoomService roomService = RoomService();
+
+    final int id = await roomService.addRoom(name);
+
+    rooms.add(Room(id, name, ObservableList()));
+
+    loading = false;
   }
 
   @action
-  void removeSelectedLight(int id) {
-    selectedLights.removeWhere((l) => l.id == id);
+  Future<void> updateRoom(Room room) async {
+    loading = true;
+
+    final RoomService roomService = RoomService();
+
+    await roomService.updateRoom(room);
+
+    final index = rooms.indexWhere((r) => r.id == room.id);
+
+    rooms[index].name = room.name;
+
+    loading = false;
   }
 
   @action
@@ -80,9 +83,11 @@ abstract class _LightStore with Store {
 
     await lightService.addLight(light);
 
-    lights.add(light);
+    final index = rooms.indexWhere((r) => r.id == light.room);
 
-    clearSelectedLights();
+    rooms[index].lights.add(light);
+    states[light.id] = 0;
+    socketStore.sendCommand(light.statusCheck());
 
     loading = false;
   }
@@ -95,11 +100,11 @@ abstract class _LightStore with Store {
 
     await lightService.updateLight(light);
 
-    final index = lights.indexWhere((l) => l.id == light.id);
+    final roomIndex = rooms.indexWhere((r) => r.id == light.id);
+    final lightIndex =
+        rooms[roomIndex].lights.indexWhere((l) => l.id == light.id);
 
-    lights[index] = light;
-
-    clearSelectedLights();
+    rooms[roomIndex].lights[lightIndex] = light;
 
     loading = false;
   }
@@ -123,7 +128,7 @@ abstract class _LightStore with Store {
         return;
       }
 
-      states[idInt] = stateInt >= 1;
+      states[idInt] = stateInt;
     }
   }
 
@@ -134,7 +139,7 @@ abstract class _LightStore with Store {
 
     _timer = Timer.periodic(const Duration(seconds: 1), (Timer timer) {
       for (Light light in lights) {
-        if (light.dimmable && states[light.id] == true) {
+        if (light.dimmable && states[light.id]! >= 1) {
           socketStore.sendCommand(light.statusCheck());
         }
       }

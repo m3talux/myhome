@@ -17,8 +17,5 @@ class AppRouter extends RootStackRouter {
         AutoRoute(
           page: HomeRoute.page,
         ),
-        AutoRoute(
-          page: LightRoute.page,
-        )
       ];
 }

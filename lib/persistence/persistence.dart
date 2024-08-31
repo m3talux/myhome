@@ -19,7 +19,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: _onCreate,
     );
   }
@@ -29,24 +29,15 @@ class DatabaseHelper {
       CREATE TABLE Lights (
         id INTEGER PRIMARY KEY,
         name TEXT,
-        dimmable INTEGER
+        dimmable INTEGER,
+        room INTEGER
       )
     ''');
 
     await db.execute('''
-      CREATE TABLE Categories (
+      CREATE TABLE Rooms (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT,
-        isPreset INTEGER
-      )
-    ''');
-
-    await db.execute('''
-      CREATE TABLE CategoryLights (
-        categoryId INTEGER,
-        lightId INTEGER,
-        FOREIGN KEY (categoryId) REFERENCES Categories(id),
-        FOREIGN KEY (lightId) REFERENCES Lights(id)
+        name TEXT
       )
     ''');
   }

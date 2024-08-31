@@ -1,7 +1,7 @@
 import 'package:mobx/mobx.dart';
 import 'package:myhome/router/router.dart';
 import 'package:myhome/router/router.gr.dart';
-import 'package:myhome/stores/light/light_store.dart';
+import 'package:myhome/stores/room/room_store.dart';
 import 'package:myhome/stores/socket/socket_store.dart';
 
 part 'app_store.g.dart';
@@ -10,9 +10,9 @@ class AppStore = _AppStore with _$AppStore;
 
 abstract class _AppStore with Store {
   final SocketStore socketStore;
-  final LightStore lightStore;
+  final RoomStore roomStore;
 
-  _AppStore(this.socketStore, this.lightStore);
+  _AppStore(this.socketStore, this.roomStore);
 
   @observable
   bool loading = false;
@@ -22,11 +22,11 @@ abstract class _AppStore with Store {
     loading = true;
 
     await socketStore.startCommandSocket();
-    await lightStore.loadData();
+    await roomStore.loadData();
 
-    await socketStore.registerMonitoring(lightStore.onData);
+    await socketStore.registerMonitoring(roomStore.onData);
 
-    lightStore.launchPeriodicChecks();
+    roomStore.launchPeriodicChecks();
 
     loading = false;
 

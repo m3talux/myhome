@@ -1,9 +1,12 @@
+import 'package:mobx/mobx.dart';
+
 class Light {
   int id;
   String name;
   bool dimmable;
+  int room;
 
-  Light(this.id, this.name, this.dimmable);
+  Light(this.id, this.name, this.dimmable, this.room);
 
   // Command to turn the light off
   String offCommand() {
@@ -21,11 +24,10 @@ class Light {
   }
 }
 
-class Category {
+class Room {
   int id;
   String name;
-  List<Light> lights;
-  bool isPreset;
+  ObservableList<Light> lights;
 
-  Category(this.id, this.name, this.lights, this.isPreset);
+  Room(this.id, this.name, this.lights);
 }

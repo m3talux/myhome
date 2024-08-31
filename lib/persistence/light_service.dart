@@ -13,6 +13,7 @@ class LightService {
         'id': light.id,
         'name': light.name,
         'dimmable': light.dimmable ? 1 : 0,
+        'room': light.room
       },
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
@@ -26,6 +27,7 @@ class LightService {
       {
         'name': light.name,
         'dimmable': light.dimmable ? 1 : 0,
+        'room': light.room
       },
       where: 'id = ?',
       whereArgs: [light.id],
@@ -40,26 +42,7 @@ class LightService {
         maps[i]['id'],
         maps[i]['name'],
         maps[i]['dimmable'] == 1,
-      );
-    });
-  }
-
-  Future<List<Light>> getLightsNotInAnyCategory() async {
-    final db = await _dbHelper.database;
-
-    // Query to get all lights not in CategoryLights
-    final List<Map<String, dynamic>> maps = await db.rawQuery('''
-      SELECT * FROM Lights
-      WHERE id NOT IN (
-        SELECT lightId FROM CategoryLights
-      )
-    ''');
-
-    return List.generate(maps.length, (i) {
-      return Light(
-        maps[i]['id'],
-        maps[i]['name'],
-        maps[i]['dimmable'] == 1,
+        maps[i]['room'] ?? 'default',
       );
     });
   }

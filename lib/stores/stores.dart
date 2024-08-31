@@ -1,7 +1,8 @@
 import 'package:myhome/stores/app/app_store.dart';
-import 'package:myhome/stores/light/light_store.dart';
 import 'package:myhome/stores/navigation/navigation_store.dart';
 import 'package:myhome/stores/socket/socket_store.dart';
+
+import 'room/room_store.dart';
 
 // final lights = <LightStore>[
 //   LightStore(id: 11, name: 'Indirect Lights', dimmable: true),
@@ -12,6 +13,6 @@ import 'package:myhome/stores/socket/socket_store.dart';
 // ];
 
 final socketStore = SocketStore();
-final lightStore = LightStore();
-final appStore = AppStore(socketStore, lightStore);
+final roomStore = RoomStore();
+final appStore = AppStore(socketStore, roomStore);
 final navigationStore = NavigationStore();

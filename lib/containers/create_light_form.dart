@@ -1,19 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:myhome/models/models.dart';
+import 'package:myhome/stores/stores.dart';
 
 class CreateLightForm extends StatefulWidget {
-  final Function(Light) onAction;
-  final String initialName;
-  final int? initialId;
-  final bool initialDimmable;
+  final Function onCreated;
 
-  const CreateLightForm({
-    super.key,
-    required this.onAction,
-    this.initialName = '',
-    this.initialId,
-    this.initialDimmable = false,
-  });
+  const CreateLightForm({super.key, required this.onCreated});
 
   @override
   State<CreateLightForm> createState() => _CreateLightFormState();
@@ -23,17 +15,10 @@ class _CreateLightFormState extends State<CreateLightForm> {
   final _formKey = GlobalKey<FormState>();
 
   // Form fields
-  late String _name;
-  late int? _id;
-  late bool _dimmable;
-
-  @override
-  void initState() {
-    super.initState();
-    _name = widget.initialName;
-    _id = widget.initialId;
-    _dimmable = widget.initialDimmable;
-  }
+  String _name = '';
+  int _id = 0;
+  bool _dimmable = false;
+  int? _selectedRoom;
 
   @override
   Widget build(BuildContext context) {
@@ -42,9 +27,32 @@ class _CreateLightFormState extends State<CreateLightForm> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          // Light Name field
+          DropdownButtonFormField<int>(
+            value: _selectedRoom,
+            hint: const Text('Select a room'),
+            decoration: const InputDecoration(
+              border: OutlineInputBorder(),
+            ),
+            items: roomStore.rooms.map((room) {
+              return DropdownMenuItem<int>(
+                value: room.id,
+                child: Text(room.name),
+              );
+            }).toList(),
+            onChanged: (value) {
+              setState(() {
+                _selectedRoom = value;
+              });
+            },
+            validator: (value) {
+              if (value == null) {
+                return 'Please select a room';
+              }
+              return null;
+            },
+          ),
+          const SizedBox(height: 16),
           TextFormField(
-            initialValue: _name,
             decoration: const InputDecoration(
               labelText: 'Name',
               border: OutlineInputBorder(),
@@ -58,12 +66,10 @@ class _CreateLightFormState extends State<CreateLightForm> {
             onSaved: (value) {
               _name = value!;
             },
+            textInputAction: TextInputAction.next,
           ),
           const SizedBox(height: 16),
-
-          // Light ID field
           TextFormField(
-            initialValue: _id?.toString(),
             decoration: const InputDecoration(
               labelText: 'ID',
               border: OutlineInputBorder(),
@@ -73,18 +79,16 @@ class _CreateLightFormState extends State<CreateLightForm> {
               if (value == null || value.isEmpty) {
                 return 'Please enter an ID';
               }
-              if (int.tryParse(value) == null || int.parse(value) == 0) {
-                return 'ID must be a positive number';
+              if (int.tryParse(value) == null) {
+                return 'ID must be a number';
               }
               return null;
             },
             onSaved: (value) {
-              _id = int.tryParse(value!);
+              _id = int.parse(value!);
             },
           ),
           const SizedBox(height: 16),
-
-          // Dimmable switch
           Row(
             children: <Widget>[
               const Text('Dimmable'),
@@ -99,23 +103,26 @@ class _CreateLightFormState extends State<CreateLightForm> {
             ],
           ),
           const SizedBox(height: 16),
-
-          // Submit button
           Center(
             child: ElevatedButton(
               onPressed: () {
                 if (_formKey.currentState!.validate()) {
                   _formKey.currentState!.save();
-                  widget.onAction(Light(_id ?? 0, _name, _dimmable));
 
-                  // Optionally reset the form after successful submission
+                  roomStore
+                      .addLight(Light(_id, _name, _dimmable, _selectedRoom!));
+
+                  widget.onCreated();
+
                   _formKey.currentState!.reset();
                   setState(() {
-                    _dimmable = false; // Reset the dimmable switch
+                    _name = '';
+                    _dimmable = false;
+                    _selectedRoom = null;
                   });
                 }
               },
-              child: const Text('Submit'),
+              child: const Text('Create Light'),
             ),
           ),
         ],
