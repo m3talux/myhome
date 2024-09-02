@@ -14,8 +14,8 @@ class Light {
   }
 
   // Command to turn the light on
-  String onCommand() {
-    return '*1*1*$id##';
+  String onCommand([int? dimValue]) {
+    return '*1*${dimValue ?? 1}*$id##';
   }
 
   // Command to check the light's status

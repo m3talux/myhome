@@ -15,6 +15,9 @@ abstract class _RoomStore with Store {
   @observable
   bool loading = false;
 
+  @observable
+  int? selectedLightId;
+
   ObservableList<Room> rooms = ObservableList();
   ObservableMap<int, int> states = ObservableMap();
 
@@ -27,6 +30,21 @@ abstract class _RoomStore with Store {
     }
 
     return res;
+  }
+
+  @computed
+  Light? get selectedLight {
+    if (selectedLightId == null) {
+      return null;
+    }
+
+    for (Light l in lights) {
+      if (l.id == selectedLightId) {
+        return l;
+      }
+    }
+
+    return null;
   }
 
   @action
@@ -45,6 +63,48 @@ abstract class _RoomStore with Store {
     }
 
     loading = false;
+  }
+
+  @action
+  void setSelectedLight(int id) {
+    selectedLightId = id;
+  }
+
+  @action
+  void clearSelectedLight() {
+    selectedLightId = null;
+  }
+
+  @action
+  void activateSelectedLight() {
+    if (selectedLightId == null) {
+      return;
+    }
+
+    socketStore.sendCommand(selectedLight!.onCommand());
+  }
+
+  @action
+  void deactivateSelectedLight() {
+    if (selectedLightId == null) {
+      return;
+    }
+
+    socketStore.sendCommand(selectedLight!.offCommand());
+  }
+
+  @action
+  void changeSelectedLightDimming(int value) {
+    if (selectedLightId == null) {
+      return;
+    }
+
+    if (!selectedLight!.dimmable) {
+      return;
+    }
+
+    socketStore.sendCommand(selectedLight!.onCommand(value));
+    states[selectedLightId!] = value;
   }
 
   @action
@@ -110,6 +170,17 @@ abstract class _RoomStore with Store {
   }
 
   @action
+  Future<void> initRoomLights(int roomIdx) async {
+    loading = true;
+
+    for (Light l in rooms[roomIdx].lights) {
+      socketStore.sendCommand(l.statusCheck());
+    }
+
+    loading = false;
+  }
+
+  @action
   void onData(String packet) {
     final match = RegExp(r'^\*1\*(\d+)\*(\d+)##$').firstMatch(packet);
 
@@ -138,9 +209,11 @@ abstract class _RoomStore with Store {
     _timer = null;
 
     _timer = Timer.periodic(const Duration(seconds: 1), (Timer timer) {
-      for (Light light in lights) {
-        if (light.dimmable && states[light.id]! >= 1) {
-          socketStore.sendCommand(light.statusCheck());
+      for (Room r in rooms) {
+        for (Light light in r.lights) {
+          if (light.dimmable && states[light.id]! >= 1) {
+            socketStore.sendCommand(light.statusCheck());
+          }
         }
       }
     });

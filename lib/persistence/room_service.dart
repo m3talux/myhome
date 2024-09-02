@@ -52,7 +52,7 @@ class RoomService {
               (i) => Light(
                 roomMaps[i]['id'],
                 roomMaps[i]['name'],
-                roomMaps[i]['dimmable'] == '1',
+                roomMaps[i]['dimmable'] == 1,
                 data['id'],
               ),
             ),

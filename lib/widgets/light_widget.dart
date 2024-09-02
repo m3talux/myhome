@@ -32,14 +32,7 @@ class _LightWidgetState extends State<LightWidget> {
         color: Colors.white,
         child: InkWell(
           borderRadius: const BorderRadius.all(Radius.circular(12)),
-          onTap: () => socketStore.sendActions(
-            [
-              roomStore.states[widget.light.id]! >= 1
-                  ? widget.light.offCommand()
-                  : widget.light.onCommand(),
-              widget.light.statusCheck()
-            ],
-          ),
+          onTap: () => roomStore.setSelectedLight(widget.light.id),
           child: Container(
             width: 100,
             padding: const EdgeInsets.all(8.0),

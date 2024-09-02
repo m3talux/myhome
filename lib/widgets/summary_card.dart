@@ -3,7 +3,6 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:myhome/containers/create_light_form.dart';
 import 'package:myhome/containers/create_room_form.dart';
-import 'package:myhome/models/models.dart';
 import 'package:myhome/stores/stores.dart';
 
 class SummaryCard extends StatelessWidget {

@@ -15,6 +15,13 @@ mixin _$RoomStore on _RoomStore, Store {
   List<Light> get lights => (_$lightsComputed ??=
           Computed<List<Light>>(() => super.lights, name: '_RoomStore.lights'))
       .value;
+  Computed<Light?>? _$selectedLightComputed;
+
+  @override
+  Light? get selectedLight =>
+      (_$selectedLightComputed ??= Computed<Light?>(() => super.selectedLight,
+              name: '_RoomStore.selectedLight'))
+          .value;
 
   late final _$loadingAtom = Atom(name: '_RoomStore.loading', context: context);
 
@@ -28,6 +35,22 @@ mixin _$RoomStore on _RoomStore, Store {
   set loading(bool value) {
     _$loadingAtom.reportWrite(value, super.loading, () {
       super.loading = value;
+    });
+  }
+
+  late final _$selectedLightIdAtom =
+      Atom(name: '_RoomStore.selectedLightId', context: context);
+
+  @override
+  int? get selectedLightId {
+    _$selectedLightIdAtom.reportRead();
+    return super.selectedLightId;
+  }
+
+  @override
+  set selectedLightId(int? value) {
+    _$selectedLightIdAtom.reportWrite(value, super.selectedLightId, () {
+      super.selectedLightId = value;
     });
   }
 
@@ -71,8 +94,71 @@ mixin _$RoomStore on _RoomStore, Store {
     return _$updateLightAsyncAction.run(() => super.updateLight(light));
   }
 
+  late final _$initRoomLightsAsyncAction =
+      AsyncAction('_RoomStore.initRoomLights', context: context);
+
+  @override
+  Future<void> initRoomLights(int roomIdx) {
+    return _$initRoomLightsAsyncAction.run(() => super.initRoomLights(roomIdx));
+  }
+
   late final _$_RoomStoreActionController =
       ActionController(name: '_RoomStore', context: context);
+
+  @override
+  void setSelectedLight(int id) {
+    final _$actionInfo = _$_RoomStoreActionController.startAction(
+        name: '_RoomStore.setSelectedLight');
+    try {
+      return super.setSelectedLight(id);
+    } finally {
+      _$_RoomStoreActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void clearSelectedLight() {
+    final _$actionInfo = _$_RoomStoreActionController.startAction(
+        name: '_RoomStore.clearSelectedLight');
+    try {
+      return super.clearSelectedLight();
+    } finally {
+      _$_RoomStoreActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void activateSelectedLight() {
+    final _$actionInfo = _$_RoomStoreActionController.startAction(
+        name: '_RoomStore.activateSelectedLight');
+    try {
+      return super.activateSelectedLight();
+    } finally {
+      _$_RoomStoreActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void deactivateSelectedLight() {
+    final _$actionInfo = _$_RoomStoreActionController.startAction(
+        name: '_RoomStore.deactivateSelectedLight');
+    try {
+      return super.deactivateSelectedLight();
+    } finally {
+      _$_RoomStoreActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void changeSelectedLightDimming(int value) {
+    final _$actionInfo = _$_RoomStoreActionController.startAction(
+        name: '_RoomStore.changeSelectedLightDimming');
+    try {
+      return super.changeSelectedLightDimming(value);
+    } finally {
+      _$_RoomStoreActionController.endAction(_$actionInfo);
+    }
+  }
 
   @override
   void onData(String packet) {
@@ -100,7 +186,9 @@ mixin _$RoomStore on _RoomStore, Store {
   String toString() {
     return '''
 loading: ${loading},
-lights: ${lights}
+selectedLightId: ${selectedLightId},
+lights: ${lights},
+selectedLight: ${selectedLight}
     ''';
   }
 }

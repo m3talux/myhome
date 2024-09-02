@@ -24,16 +24,8 @@ class MyBottomBar extends StatelessWidget {
             index: 0,
           ),
           MyBottomBarItem(
-            icon: Icons.lightbulb_outline,
-            index: 1,
-          ),
-          MyBottomBarItem(
-            icon: Icons.blinds,
-            index: 2,
-          ),
-          MyBottomBarItem(
             icon: Icons.settings,
-            index: 3,
+            index: 1,
           ),
         ],
       ),
