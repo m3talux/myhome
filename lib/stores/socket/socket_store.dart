@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:mobx/mobx.dart';
-import 'package:myhome/models/socker_status.dart';
+import 'package:myhome/models/socket_status.dart';
 
 part 'socket_store.g.dart';
 

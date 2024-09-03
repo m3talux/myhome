@@ -43,6 +43,7 @@ class RoomsWidget extends StatelessWidget {
                 child: Center(
                   child: Text(
                     roomStore.rooms[index].name,
+                    textAlign: TextAlign.center,
                   ),
                 ),
               ),
